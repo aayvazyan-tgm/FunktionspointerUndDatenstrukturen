@@ -1,4 +1,4 @@
 FunktionspointerUndDatenstrukturen
 ==================================
 
-Beinhaltet einen Rechner und ein Telefonbuch
+Beinhaltet einen Rechner und ein Addressbuch
