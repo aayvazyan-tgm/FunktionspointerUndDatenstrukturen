@@ -16,8 +16,8 @@
 
 
 /* Defines */
-#define my_free_p(pp) free(pp);pp=NULL
-#define my_free_a(pa) free(pa);pa=NULL
+//#define my_free_p(pp) free(pp);pp=NULL
+//#define my_free_a(pa) free(pa);pa=NULL
 
 
 /* Eigene "Datentypen" */
@@ -67,8 +67,9 @@ int main (int argsc, char** argv)
 			}
 			else if(anzahl > 0) {
 				speichern = anzahl+1;
-				my_free_p(pp);
+				//my_free_p(pp);
 				pp = (person*) realloc(pp,speichern * sizeof(person));
+				//y
 				my_free_a(pa);
 				pa = (address*) realloc(pa,speichern * sizeof(address));
 				++anzahl;
