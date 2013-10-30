@@ -13,6 +13,12 @@
 /* Verwendete Header */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+
+/* Defines */
+#define my_free_p(pp) free(pp);pp=NULL
+#define my_free_a(pa) free(pa);pa=NULL
 
 
 /* Eigene "Datentypen" */
@@ -24,16 +30,17 @@ typedef struct
 
 typedef struct
 {
-	char str[100];
-	unsigned int strnr;
-	unsigned int plz;
+	char str[50];
+	int strnr;
+	int plz;
+	char ort[50];
 }address;
 
 
 /* Prototypen */
-void ausgabe(person*, address*);
+void ausgabe(person*, address*, int);
 void hinzufuegen(person*, address*, int);
-void loeschen(person*, address*, int);
+void loeschen(person*, address*, int, int);
 
 
 /* main-Methode */
@@ -42,6 +49,15 @@ int main (int argsc, char** argv)
 	char antwort[] = {' '};
 	char funktion[] = {' '};
 	static int anzahl = 0;
+	int zuloeschen = 0;
+	int speichern = 0;
+
+	person* pp = NULL;
+	pp = (person*) malloc(sizeof(*pp));
+	address* pa = NULL;
+	pa = (address*) malloc(sizeof(*pa));
+	if(pp == NULL || pa == NULL) { printf("Nu such Memory left!"); return EXIT_FAILURE; }
+
 
 
 	while(antwort[0] != 'n') {
@@ -56,12 +72,13 @@ int main (int argsc, char** argv)
 		}
 		scanf("%s", antwort);
 		if(antwort[0] == 'y') {
-			printf("Das ist eine gueltige Eingabe!\n");
+			//printf("Das ist eine gueltige Eingabe!\n");
 
 			if(anzahl == 0)
 			{
-				//hinzufuegen
 				anzahl++;
+				hinzufuegen(pp,pa,anzahl); //hinzufuegen
+				ausgabe(pp,pa,anzahl);
 
 			}
 			else if(anzahl > 0)
@@ -72,13 +89,27 @@ int main (int argsc, char** argv)
 					scanf("%s", funktion);
 					switch(funktion[0])
 					{
-						case 'h': //hinzufuegen
-								  anzahl++;
+						case 'h': speichern = anzahl+1;
+								  my_free_p(pp);
+								  pp = (person*) realloc(pp,speichern * sizeof(person));
+								  my_free_a(pa);
+								  pa = (address*) realloc(pa,speichern * sizeof(address));
+								  hinzufuegen(pp,pa,anzahl);//hinzufuegen
+								  ++anzahl;
+								  ausgabe(pp,pa,anzahl);
 								  break;
-						case 'l': //loeschen
-								  anzahl--;
+						case 'l': speichern = anzahl-1;
+								  ausgabe(pp,pa,anzahl);
+								  scanf("%i", &zuloeschen);
+								  loeschen(pp,pa,anzahl,zuloeschen);
+								  pp = (person*) realloc(pp, anzahl * sizeof(person));
+								  my_free_p(pp);
+								  pa = (address*) realloc(pa, anzahl * sizeof(address));
+								  my_free_a(pa);
+								  --anzahl;
+								  ausgabe(pp,pa,anzahl);
 								  break;
-						default: printf("Das ist eine gueltige Eingabe!\n");
+						default: printf("Das ist KEINE gueltige Eingabe!\n");
 								 break;
 					}
 					fseek(stdin, 0, SEEK_SET);
@@ -89,7 +120,7 @@ int main (int argsc, char** argv)
 			printf("Das ist keine gueltige Eingabe!\n");
 		} else { goto RAUS; }
 		fseek(stdin, 0, SEEK_SET);
-		printf("\n%i\n", anzahl);
+		//printf("\n%i\n", anzahl);
 	}
 
 
@@ -97,17 +128,57 @@ int main (int argsc, char** argv)
 }
 
 
-void ausgabe(person* p1, address* p2)
+void ausgabe(person* p1, address* p2, int anzahl)
 {
-
+	int i = 0;
+	while(i < anzahl) {
+		printf("%i  Person: %s %s, Address: %s %i, %i %s\n", i,
+				(p1+i)->vname, (p1+i)->nname, (p2+i)->str,
+				(p2+i)->strnr, (p2+i)->plz, (p2+i)->ort);
+		i++;
+	}
 }
 
-void hinzufuegen(person* p1, address* p2, int index)
+void hinzufuegen(person* p1, address* p2, int anzahl)
 {
-
+	printf("Vorname: ");
+	scanf("%s", ((p1+anzahl-1)->vname));
+	printf("Nachname: ");
+	scanf("%s", ((p1+anzahl-1)->nname));
+	printf("Strasse: ");
+	scanf("%s", ((p2+anzahl-1)->str));
+	printf("Strassennummer: ");
+	scanf("%u", &((p2+anzahl-1)->strnr));
+	printf("Postleitzahl: ");
+	scanf("%u", &((p2+anzahl-1)->plz));
+	printf("Ort: ");
+	scanf("%s", ((p2+anzahl-1)->ort));
+	fseek(stdin, 0, SEEK_SET);
 }
 
-void loeschen(person* p1, address* p2, int index)
+void loeschen(person* p1, address* p2, int anzahl, int index)
 {
-
+	int i = 0;
+	int k = 0;
+	while(i < anzahl) {
+		if(strcmp((p1+i)->vname, (p1+index)->vname) == 0 &&
+			strcmp((p1+i)->nname, (p1+index)->nname) == 0 &&
+			strcmp((p2+i)->str, (p2+index)->str) == 0 &&
+			(p2+i)->strnr == (p2+index)->strnr &&
+			(p2+i)->plz == (p2+index)->plz &&
+			strcmp((p2+i)->ort, (p2+index)->ort) == 0)
+		{
+			k = i;
+			while(k < anzahl-1) {
+				strcpy((p1+k)->vname,(p1+k+1)->vname);
+				strcpy((p1+k)->nname, (p1+k+1)->nname);
+				strcpy((p2+k)->str, (p2+k+1)->str);
+				(p2+k)->strnr = (p2+k+1)->strnr;
+				(p2+k)->plz = (p2+k+1)->plz;
+				strcpy((p2+k)->ort, (p2+k+1)->ort);
+				k++;
+			}
+		}
+		i++;
+	}
 }
